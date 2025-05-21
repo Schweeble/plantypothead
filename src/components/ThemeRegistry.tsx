@@ -1,4 +1,4 @@
-import { createTheme, ThemeProvider } from "@mui/material";
+import { createTheme, ThemeProvider, CssBaseline } from "@mui/material";
 import { Roboto } from "next/font/google";
 
 const roboto = Roboto({
@@ -19,6 +19,16 @@ const theme = createTheme({
       main: "#2e7d32", // Darker green
     },
   },
+  components: {
+    MuiBadge: {
+      styleOverrides: {
+        badge: {
+          zIndex: 9999, // Ensure badge is always on top
+          transform: "scale(1) translate(25%, -25%)", // Position the badge better
+        },
+      },
+    },
+  },
 });
 
 export default function ThemeRegistry({
@@ -26,5 +36,10 @@ export default function ThemeRegistry({
 }: {
   children: React.ReactNode;
 }) {
-  return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      {children}
+    </ThemeProvider>
+  );
 }
