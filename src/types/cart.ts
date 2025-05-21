@@ -2,8 +2,10 @@ export interface CartItem {
   id: string;
   name: string;
   price: number;
-  image: string;
   quantity: number;
+  image?: string;
+  description?: string;
+  priceId: string; // Added for Stripe integration
 }
 export interface Cart {
   items: CartItem[];
