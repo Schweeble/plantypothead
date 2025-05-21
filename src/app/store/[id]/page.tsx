@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { use } from "react";
 
 // This is just mock data - in a real app, you would fetch from a database or API
 const plantsData = {
@@ -41,8 +42,13 @@ const plantsData = {
   },
 };
 
-export default function PlantDetail({ params }: { params: { id: string } }) {
-  const plant = plantsData[params.id as keyof typeof plantsData];
+export default function PlantDetail({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const id = use(params).id;
+  const plant = plantsData[id as keyof typeof plantsData];
 
   if (!plant) {
     notFound();
