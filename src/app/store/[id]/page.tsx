@@ -1,5 +1,6 @@
 "use client";
 
+import { CartItem } from "@/types/cart";
 import {
   Container,
   Typography,
@@ -108,6 +109,31 @@ export default function PlantDetail({
               color="primary"
               size="large"
               sx={{ mr: 2 }}
+              onClick={() => {
+                // Get existing cart from localStorage
+                const existingCart = localStorage.getItem("cart")
+                  ? JSON.parse(localStorage.getItem("cart") || "[]")
+                  : [];
+
+                // Check if item already exists in cart
+                const itemIndex = existingCart.findIndex(
+                  (item: CartItem) => item.id === plant.id
+                );
+
+                if (itemIndex > -1) {
+                  // Increase quantity if item exists
+                  existingCart[itemIndex].quantity += 1;
+                } else {
+                  // Add new item with quantity 1
+                  existingCart.push({ ...plant, quantity: 1 });
+                }
+
+                // Save updated cart
+                localStorage.setItem("cart", JSON.stringify(existingCart));
+
+                // Show feedback
+                alert("Item added to cart!");
+              }}
             >
               Add to Cart
             </Button>
