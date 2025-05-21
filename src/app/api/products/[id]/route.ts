@@ -4,10 +4,10 @@ import Stripe from "stripe";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Fetch specific product from Stripe
     const product = await stripe.products.retrieve(id, {
