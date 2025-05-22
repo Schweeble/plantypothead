@@ -17,9 +17,9 @@ import {
   ListItemText,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import FloatingCartButton from "./FloatingCartButton";
 
 const navItems = [
   {
@@ -81,10 +81,13 @@ export default function Navbar() {
 
   return (
     <>
+      {/* Floating cart button that stays fixed */}
+      <FloatingCartButton />
+
       <AppBar
         position="static"
         color="default"
-        elevation={0}
+        elevation={1}
         sx={{ bgcolor: "white" }}
       >
         <Container maxWidth="xl">
@@ -120,9 +123,7 @@ export default function Navbar() {
             )}
 
             <Box sx={{ display: "flex" }}>
-              <IconButton color="primary" aria-label="shopping cart">
-                <ShoppingCartIcon />
-              </IconButton>
+              {/* Shopping cart icon removed from here */}
 
               {isMobile && (
                 <IconButton
@@ -138,6 +139,7 @@ export default function Navbar() {
           </Toolbar>
         </Container>
       </AppBar>
+      {/* Toolbar placeholder removed since navbar is no longer fixed */}
 
       <Drawer
         anchor="right"

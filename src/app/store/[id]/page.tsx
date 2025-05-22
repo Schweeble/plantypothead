@@ -1,57 +1,91 @@
 "use client";
 
+import { CartItem } from "@/types/cart";
 import {
   Container,
   Typography,
   Box,
   Button,
   Grid,
-  Paper,
+  Card,
+  CardMedia,
   Breadcrumbs,
   Link as MuiLink,
+  CircularProgress,
 } from "@mui/material";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { use } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import AddToCartDialog from "@/components/ui/AddToCartDialog";
 
-// This is just mock data - in a real app, you would fetch from a database or API
-const plantsData = {
-  "1": {
-    id: "1",
-    name: "Monstera Deliciosa",
-    price: 39.99,
-    description:
-      "Known for its distinctive leaves with natural holes, the Monstera Deliciosa is a great addition to any home. It requires moderate light and watering.",
-    image: "/plant-placeholder.jpg",
-  },
-  "2": {
-    id: "2",
-    name: "Snake Plant",
-    price: 24.99,
-    description:
-      "The Snake Plant is a hardy indoor plant with stiff, upright leaves. It is known for being very low maintenance and can thrive in almost any condition.",
-    image: "/plant-placeholder.jpg",
-  },
-  "3": {
-    id: "3",
-    name: "Fiddle Leaf Fig",
-    price: 49.99,
-    description:
-      "With large, violin-shaped leaves, the Fiddle Leaf Fig makes a striking statement in any room. It needs bright, indirect light and consistent care.",
-    image: "/plant-placeholder.jpg",
-  },
-};
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  images: [string];
+  priceId: string;
+}
 
-export default function PlantDetail({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const id = use(params).id;
-  const plant = plantsData[id as keyof typeof plantsData];
+export default function PlantDetail() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params?.id as string;
 
-  if (!plant) {
-    notFound();
+  const [plant, setPlant] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`/api/products/${id}`);
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            router.push("/404");
+            return;
+          }
+          throw new Error("Failed to fetch product");
+        }
+
+        const data = await response.json();
+        setPlant(data);
+      } catch (err) {
+        setError("Error loading product. Please try again later.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchProduct();
+    }
+  }, [id, router]);
+
+  if (loading) {
+    return (
+      <Container sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (error || !plant) {
+    return (
+      <Container sx={{ mt: 8 }}>
+        <Typography color="error" align="center">
+          {error || "Product not found"}
+        </Typography>
+        <Box sx={{ textAlign: "center", mt: 3 }}>
+          <Button variant="contained" component={Link} href="/store">
+            Back to Store
+          </Button>
+        </Box>
+      </Container>
+    );
   }
 
   return (
@@ -72,24 +106,31 @@ export default function PlantDetail({
       </Breadcrumbs>
 
       <Grid container spacing={6}>
-        <Grid spacing={{ xs: 6, md: 12 }}>
-          <Paper
-            elevation={2}
+        {/* Image Section */}
+        <Grid spacing={{ xs: 12, md: 6 }}>
+          <Card
+            elevation={3}
             sx={{
-              height: 400,
-              bgcolor: "grey.200",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              maxWidth: "100%",
+              height: "auto",
+              overflow: "hidden",
+              borderRadius: 2,
             }}
           >
-            <Typography color="text.secondary">
-              Plant Image Placeholder
-            </Typography>
-          </Paper>
+            <CardMedia
+              component="img"
+              image={plant.images?.[0] || "/plant-placeholder.jpg"}
+              alt={plant.name}
+              sx={{
+                height: 400,
+                objectFit: "contain",
+                bgcolor: "grey.100",
+              }}
+            />
+          </Card>
         </Grid>
 
-        <Grid spacing={{ xs: 6, md: 12 }}>
+        <Grid spacing={{ xs: 12, md: 6 }}>
           <Typography variant="h3" component="h1" gutterBottom>
             {plant.name}
           </Typography>
@@ -108,6 +149,31 @@ export default function PlantDetail({
               color="primary"
               size="large"
               sx={{ mr: 2 }}
+              onClick={() => {
+                // Get existing cart from localStorage
+                const existingCart = localStorage.getItem("cart")
+                  ? JSON.parse(localStorage.getItem("cart") || "[]")
+                  : [];
+
+                // Check if item already exists in cart
+                const itemIndex = existingCart.findIndex(
+                  (item: CartItem) => item.id === plant.id
+                );
+
+                if (itemIndex > -1) {
+                  // Increase quantity if item exists
+                  existingCart[itemIndex].quantity += 1;
+                } else {
+                  // Add new item with quantity 1
+                  existingCart.push({ ...plant, quantity: 1 });
+                }
+
+                // Save updated cart
+                localStorage.setItem("cart", JSON.stringify(existingCart));
+
+                // Open dialog instead of alert
+                setDialogOpen(true);
+              }}
             >
               Add to Cart
             </Button>
@@ -115,6 +181,31 @@ export default function PlantDetail({
               Back to Store
             </Button>
           </Box>
+
+          {/* Add the dialog component */}
+          <AddToCartDialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)}
+            productName={plant?.name || ""}
+            onAddAnother={() => {
+              // Get existing cart
+              const existingCart = localStorage.getItem("cart")
+                ? JSON.parse(localStorage.getItem("cart") || "[]")
+                : [];
+
+              // Find the item
+              const itemIndex = existingCart.findIndex(
+                (item: CartItem) => item.id === plant?.id
+              );
+
+              // Increase quantity
+              if (itemIndex > -1) {
+                existingCart[itemIndex].quantity += 1;
+                // Save updated cart
+                localStorage.setItem("cart", JSON.stringify(existingCart));
+              }
+            }}
+          />
         </Grid>
       </Grid>
     </Container>
