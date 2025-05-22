@@ -14,14 +14,7 @@ import {
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  priceId: string;
-}
+import { CartItem } from "@/types/cart";
 
 // Load Stripe
 const stripePromise = loadStripe(

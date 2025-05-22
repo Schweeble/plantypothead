@@ -14,11 +14,17 @@ export async function GET() {
     const formattedProducts = products.data.map((product) => {
       const price = product.default_price as Stripe.Price;
 
+      // Ensure we're getting the first image from the product
+      const imageUrl =
+        product.images && product.images.length > 0
+          ? product.images[0]
+          : "/plant-placeholder.jpg";
+
       return {
         id: product.id,
         name: product.name,
         description: product.description || "",
-        image: product.images[0] || "/plant-placeholder.jpg",
+        image: imageUrl, // Make sure we're using the correct image
         price: price.unit_amount ? price.unit_amount / 100 : 0,
         priceId: price.id,
       };

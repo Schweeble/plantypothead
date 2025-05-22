@@ -7,7 +7,8 @@ import {
   Box,
   Button,
   Grid,
-  Paper,
+  Card,
+  CardMedia,
   Breadcrumbs,
   Link as MuiLink,
   CircularProgress,
@@ -15,13 +16,14 @@ import {
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import AddToCartDialog from "@/components/ui/AddToCartDialog";
 
 interface Product {
   id: string;
   name: string;
   price: number;
   description: string;
-  image: string;
+  images: [string];
   priceId: string;
 }
 
@@ -33,6 +35,7 @@ export default function PlantDetail() {
   const [plant, setPlant] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -103,27 +106,28 @@ export default function PlantDetail() {
       </Breadcrumbs>
 
       <Grid container spacing={6}>
+        {/* Image Section */}
         <Grid spacing={{ xs: 12, md: 6 }}>
-          <Paper
-            elevation={2}
+          <Card
+            elevation={3}
             sx={{
-              height: 400,
-              bgcolor: "grey.200",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundImage: `url(${plant.image})`,
-              backgroundSize: "contain",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
+              maxWidth: "100%",
+              height: "auto",
+              overflow: "hidden",
+              borderRadius: 2,
             }}
           >
-            {!plant.image && (
-              <Typography color="text.secondary">
-                Plant Image Placeholder
-              </Typography>
-            )}
-          </Paper>
+            <CardMedia
+              component="img"
+              image={plant.images?.[0] || "/plant-placeholder.jpg"}
+              alt={plant.name}
+              sx={{
+                height: 400,
+                objectFit: "contain",
+                bgcolor: "grey.100",
+              }}
+            />
+          </Card>
         </Grid>
 
         <Grid spacing={{ xs: 12, md: 6 }}>
@@ -167,8 +171,8 @@ export default function PlantDetail() {
                 // Save updated cart
                 localStorage.setItem("cart", JSON.stringify(existingCart));
 
-                // Show feedback
-                alert("Item added to cart!");
+                // Open dialog instead of alert
+                setDialogOpen(true);
               }}
             >
               Add to Cart
@@ -177,6 +181,31 @@ export default function PlantDetail() {
               Back to Store
             </Button>
           </Box>
+
+          {/* Add the dialog component */}
+          <AddToCartDialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)}
+            productName={plant?.name || ""}
+            onAddAnother={() => {
+              // Get existing cart
+              const existingCart = localStorage.getItem("cart")
+                ? JSON.parse(localStorage.getItem("cart") || "[]")
+                : [];
+
+              // Find the item
+              const itemIndex = existingCart.findIndex(
+                (item: CartItem) => item.id === plant?.id
+              );
+
+              // Increase quantity
+              if (itemIndex > -1) {
+                existingCart[itemIndex].quantity += 1;
+                // Save updated cart
+                localStorage.setItem("cart", JSON.stringify(existingCart));
+              }
+            }}
+          />
         </Grid>
       </Grid>
     </Container>

@@ -21,11 +21,17 @@ export async function GET(
 
     const price = product.default_price as Stripe.Price;
 
+    // Ensure we use the first image from the product if available
+    const images =
+      product.images && product.images.length > 0
+        ? product.images
+        : ["/plant-placeholder.jpg"];
+
     const formattedProduct = {
       id: product.id,
       name: product.name,
       description: product.description || "",
-      image: product.images[0] || "/plant-placeholder.jpg",
+      images: images,
       price: price.unit_amount ? price.unit_amount / 100 : 0,
       priceId: price.id,
     };

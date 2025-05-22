@@ -94,8 +94,12 @@ export default function StorePage() {
                 sx={{
                   pt: "75%",
                   backgroundSize: "contain",
+                  backgroundImage: `url(${
+                    product.image || "/plant-placeholder.jpg"
+                  })`,
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
                 }}
-                image={product.image}
               />
               <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h5" component="h2">

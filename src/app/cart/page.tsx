@@ -22,14 +22,8 @@ import { useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteIcon from "@mui/icons-material/Delete";
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-}
+import { CartItem } from "@/types/cart";
+import Image from "next/image";
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -145,16 +139,24 @@ export default function CartPage() {
                           sx={{
                             width: 60,
                             height: 60,
-                            bgcolor: "grey.200",
                             mr: 2,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                           }}
                         >
-                          <Typography variant="body2" color="text.secondary">
-                            Image
-                          </Typography>
+                          {item.image && (
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              width={60}
+                              height={60}
+                              style={{ objectFit: "contain" }}
+                            />
+                          )}
+                          {!item.image && (
+                            <Typography variant="body2">No Image</Typography>
+                          )}
                         </Box>
                         <Typography>{item.name}</Typography>
                       </Box>
